@@ -135,6 +135,14 @@ export interface HudConfig {
     modelOverride: string;
     customLine: string;
     timeFormat: TimeFormatMode;
+    // Show the advisor model when `/advisor` is configured for the session.
+    // The model ID is read from the transcript (see TranscriptData.advisorModel)
+    // so it reflects the actual current choice, not a global default.
+    showAdvisor: boolean;
+    // Optional manual override for the displayed advisor name. When set,
+    // suppresses transcript-driven detection — useful if the user wants a
+    // shorter label or transcript has not been written yet.
+    advisorOverride: string;
   };
   colors: HudColorOverrides;
 }
@@ -202,6 +210,8 @@ export const DEFAULT_CONFIG: HudConfig = {
     modelOverride: '',
     customLine: '',
     timeFormat: 'relative',
+    showAdvisor: false,
+    advisorOverride: '',
   },
   colors: {
     context: 'green',
@@ -620,6 +630,12 @@ export function mergeConfig(userConfig: Partial<HudConfig>): HudConfig {
     timeFormat: validateTimeFormat(migrated.display?.timeFormat)
       ? migrated.display.timeFormat
       : DEFAULT_CONFIG.display.timeFormat,
+    showAdvisor: typeof migrated.display?.showAdvisor === 'boolean'
+      ? migrated.display.showAdvisor
+      : DEFAULT_CONFIG.display.showAdvisor,
+    advisorOverride: typeof migrated.display?.advisorOverride === 'string'
+      ? migrated.display.advisorOverride.slice(0, 80)
+      : DEFAULT_CONFIG.display.advisorOverride,
   };
 
   const colors = {

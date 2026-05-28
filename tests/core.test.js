@@ -2254,3 +2254,58 @@ test('countConfigs cache: works without cwd (user scope only)', async () => {
     await rm(homeDir, { recursive: true, force: true });
   }
 });
+
+test('parseTranscript captures advisorModel from assistant records', async () => {
+  const result = await parseTempTranscript('advisor.jsonl', [
+    { type: 'user', slug: 'auto-slug' },
+    {
+      type: 'assistant',
+      timestamp: '2026-05-28T09:03:32.094Z',
+      advisorModel: 'claude-opus-4-7',
+      message: { content: [] },
+    },
+  ]);
+
+  assert.equal(result.advisorModel, 'claude-opus-4-7');
+});
+
+test('parseTranscript returns undefined advisorModel when not present', async () => {
+  const result = await parseTempTranscript('no-advisor.jsonl', [
+    { type: 'user', slug: 'auto-slug' },
+    { type: 'assistant', timestamp: '2026-05-28T09:03:32.094Z', message: { content: [] } },
+  ]);
+
+  assert.equal(result.advisorModel, undefined);
+});
+
+test('parseTranscript prefers the most recent advisorModel value', async () => {
+  const result = await parseTempTranscript('advisor-latest.jsonl', [
+    {
+      type: 'assistant',
+      timestamp: '2026-05-28T09:00:00.000Z',
+      advisorModel: 'claude-sonnet-4-6',
+      message: { content: [] },
+    },
+    {
+      type: 'assistant',
+      timestamp: '2026-05-28T09:05:00.000Z',
+      advisorModel: 'claude-opus-4-7',
+      message: { content: [] },
+    },
+  ]);
+
+  assert.equal(result.advisorModel, 'claude-opus-4-7');
+});
+
+test('parseTranscript ignores empty advisorModel strings', async () => {
+  const result = await parseTempTranscript('advisor-empty.jsonl', [
+    {
+      type: 'assistant',
+      timestamp: '2026-05-28T09:00:00.000Z',
+      advisorModel: '',
+      message: { content: [] },
+    },
+  ]);
+
+  assert.equal(result.advisorModel, undefined);
+});

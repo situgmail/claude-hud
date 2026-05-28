@@ -18,6 +18,7 @@ import { renderIdentityLine } from '../dist/render/lines/identity.js';
 import { renderEnvironmentLine } from '../dist/render/lines/environment.js';
 import { renderSessionTokensLine } from '../dist/render/lines/session-tokens.js';
 import { renderSessionTimeLine } from '../dist/render/lines/session-time.js';
+import { renderAdvisorLine, prettifyAdvisorId } from '../dist/render/lines/advisor.js';
 import { getContextColor, getQuotaColor } from '../dist/render/colors.js';
 import { setLanguage } from '../dist/i18n/index.js';
 
@@ -2663,4 +2664,46 @@ test('renderUsageLine limit-reached uses "resets at" for absolute timeFormat', (
   assert.ok(plain.includes('Limit reached'), 'should show limit reached');
   assert.ok(plain.includes('resets at'), `should use "resets at" for absolute mode, got: ${plain}`);
   assert.ok(!plain.includes('resets in'), `should not say "resets in" for absolute mode, got: ${plain}`);
+});
+
+test('prettifyAdvisorId expands canonical model IDs', () => {
+  assert.equal(prettifyAdvisorId('claude-opus-4-7'), 'Opus 4.7');
+  assert.equal(prettifyAdvisorId('claude-sonnet-4-6'), 'Sonnet 4.6');
+  assert.equal(prettifyAdvisorId('claude-haiku-4-5-20251001'), 'Haiku 4.5');
+});
+
+test('prettifyAdvisorId handles short aliases and unknown formats', () => {
+  assert.equal(prettifyAdvisorId('opus'), 'Opus');
+  assert.equal(prettifyAdvisorId('sonnet'), 'Sonnet');
+  assert.equal(prettifyAdvisorId('claude-some-future-model-9-9'), 'some-future-model-9-9');
+  assert.equal(prettifyAdvisorId(''), '');
+});
+
+test('renderAdvisorLine returns null when showAdvisor is false', () => {
+  const ctx = baseContext();
+  ctx.config = mergeConfig({ display: { showAdvisor: false } });
+  ctx.transcript.advisorModel = 'claude-opus-4-7';
+  assert.equal(renderAdvisorLine(ctx), null);
+});
+
+test('renderAdvisorLine returns null when no advisor data is available', () => {
+  const ctx = baseContext();
+  ctx.config = mergeConfig({ display: { showAdvisor: true } });
+  assert.equal(renderAdvisorLine(ctx), null);
+});
+
+test('renderAdvisorLine prettifies transcript-driven advisor model', () => {
+  const ctx = baseContext();
+  ctx.config = mergeConfig({ display: { showAdvisor: true } });
+  ctx.transcript.advisorModel = 'claude-opus-4-7';
+  const plain = stripAnsi(renderAdvisorLine(ctx));
+  assert.equal(plain, 'Advisor: Opus 4.7');
+});
+
+test('renderAdvisorLine honours advisorOverride verbatim', () => {
+  const ctx = baseContext();
+  ctx.config = mergeConfig({ display: { showAdvisor: true, advisorOverride: 'Opus 4.7 (1M)' } });
+  ctx.transcript.advisorModel = 'claude-sonnet-4-6';
+  const plain = stripAnsi(renderAdvisorLine(ctx));
+  assert.equal(plain, 'Advisor: Opus 4.7 (1M)');
 });
