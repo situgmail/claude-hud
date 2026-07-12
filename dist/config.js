@@ -49,6 +49,7 @@ export const DEFAULT_CONFIG = {
         contextValue: 'percent',
         showConfigCounts: false,
         showCost: false,
+        showRoutedCost: false,
         showDuration: false,
         showSpeed: false,
         showTokenBreakdown: true,
@@ -378,6 +379,9 @@ export function mergeConfig(userConfig) {
         showCost: typeof migrated.display?.showCost === 'boolean'
             ? migrated.display.showCost
             : DEFAULT_CONFIG.display.showCost,
+        showRoutedCost: typeof migrated.display?.showRoutedCost === 'boolean'
+            ? migrated.display.showRoutedCost
+            : DEFAULT_CONFIG.display.showRoutedCost,
         showDuration: typeof migrated.display?.showDuration === 'boolean'
             ? migrated.display.showDuration
             : DEFAULT_CONFIG.display.showDuration,

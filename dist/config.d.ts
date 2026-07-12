@@ -62,6 +62,7 @@ export interface HudConfig {
         contextValue: ContextValueMode;
         showConfigCounts: boolean;
         showCost: boolean;
+        showRoutedCost: boolean;
         showDuration: boolean;
         showSpeed: boolean;
         showTokenBreakdown: boolean;
